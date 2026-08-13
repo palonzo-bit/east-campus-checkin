@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>East Campus Dashboard</title>
+
+<style>
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 25px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 12px rgba(0,0,0,.08);
+}
+
+h1 {
+  margin-bottom: 5px;
+}
+
+.stats {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.stat {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  min-width: 160px;
+  text-align: center;
+  box-shadow: 0 3px 12px rgba(0,0,0,.08);
+}
+
+.stat-number {
+  font-size: 34px;
+  font-weight: bold;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #eeeeee;
+  text-align: left;
+  padding: 12px;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #dddddd;
+}
+
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  margin: 2px;
+}
+
+.completeButton {
+  background: #e8f5e9;
+}
+
+.checkoutButton {
+  background: #eeeeee;
+}
+
+#dashboard {
+  display: none;
+}
+
+input {
+  width: 100%;
+  padding: 13px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  font-size: 16px;
+  border: 1px solid #cccccc;
+  border-radius: 7px;
+}
+
+.loginButton {
+  width: 100%;
+  background: #222222;
+  color: white;
+  padding: 14px;
+  font-size: 16px;
+}
+
+.logout {
+  float: right;
+}
+
+#loginError {
+  color: #b00020;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+<!-- STAFF LOGIN -->
+
+<div id="login" class="card">
+
+<h2>Staff Login</h2>
+
+<p>Sign in to view today's student check-ins.</p>
+
+<input
+  type="email"
+  id="email"
+  placeholder="Staff email"
+>
+
+<input
+  type="password"
+  id="password"
+  placeholder="Password"
+>
+
+<button
+  class="loginButton"
+  onclick="login()">
+
+  SIGN IN
+
+</button>
+
+<p id="loginError"></p>
+
+</div>
+
+
+
+<!-- STAFF DASHBOARD -->
+
+<div id="dashboard">
+
+<button
+  class="logout"
+  onclick="logout()">
+
+  Sign Out
+
+</button>
+
+<h1>East Campus</h1>
+
+<p>Today's Student Dashboard</p>
+
+
+<!-- COUNTS -->
+
+<div class="stats">
+
+<div class="stat">
+
+<div
+  class="stat-number"
+  id="onsiteCount">
+
+  0
+
+</div>
+
+Students On Site
+
+</div>
+
+
+<div class="stat">
+
+<div
+  class="stat-number"
+  id="completeCount">
+
+  0
+
+</div>
+
+Goals Complete
+
+</div>
+
+
+<div class="stat">
+
+<div
+  class="stat-number"
+  id="checkoutCount">
+
+  0
+
+</div>
+
+Checked Out
+
+</div>
+
+</div>
+
+
+
+<!-- STUDENT TABLE -->
+
+<div class="card">
+
+<div class="tableWrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Student</th>
+<th>Arrived</th>
+<th>Working On</th>
+<th>Today's Goal</th>
+<th>Complete</th>
+<th>Check Out</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="studentTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js"></script>
+
+
+<script>
+
+
+/* ----------------------------------
+   FIREBASE CONFIGURATION
+   WE WILL REPLACE THIS NEXT
+---------------------------------- */
+
+const firebaseConfig = {
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyAdHR9slKI8KLdyNds8MWtCi-cFNHMBPDU",
+  authDomain: "https://east-campus-onsite-default-rtdb.firebaseio.com/",
+  projectId: "east-campus-onsite",
+  storageBucket: "east-campus-onsite.firebasestorage.app",
+  messagingSenderId: "276442458258",
+  appId: "1:276442458258:web:8469031b939c462971de4b",
+  measurementId: "G-VTJ54LN5G5"
+};
+
+
+firebase.initializeApp(firebaseConfig);
+
+const database = firebase.database();
+
+const auth = firebase.auth();
+
+
+
+/* ----------------------------------
+   STAFF LOGIN
+---------------------------------- */
+
+function login() {
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+
+  document.getElementById("loginError").innerText = "";
+
+
+  auth
+  .signInWithEmailAndPassword(email, password)
+
+  .catch(error => {
+
+    document.getElementById("loginError").innerText =
+      "Unable to sign in. Please check your email and password.";
+
+    console.error(error);
+
+  });
+
+}
+
+
+
+function logout() {
+
+  auth.signOut();
+
+}
+
+
+
+auth.onAuthStateChanged(user => {
+
+  if (user) {
+
+    document.getElementById("login").style.display =
+      "none";
+
+    document.getElementById("dashboard").style.display =
+      "block";
+
+    loadStudents();
+
+  }
+
+  else {
+
+    document.getElementById("dashboard").style.display =
+      "none";
+
+    document.getElementById("login").style.display =
+      "block";
+
+  }
+
+});
+
+
+
+/* ----------------------------------
+   CHECK WHETHER RECORD IS TODAY
+---------------------------------- */
+
+function isToday(timestamp) {
+
+  const date =
+    new Date(timestamp);
+
+  const today =
+    new Date();
+
+
+  return (
+
+    date.getFullYear() === today.getFullYear() &&
+
+    date.getMonth() === today.getMonth() &&
+
+    date.getDate() === today.getDate()
+
+  );
+
+}
+
+
+
+/* ----------------------------------
+   FORMAT TIME
+---------------------------------- */
+
+function formatTime(timestamp) {
+
+  if (!timestamp) {
+
+    return "—";
+
+  }
+
+
+  return new Date(timestamp)
+    .toLocaleTimeString(
+      [],
+      {
+        hour: "numeric",
+        minute: "2-digit"
+      }
+    );
+
+}
+
+
+
+/* ----------------------------------
+   LOAD STUDENTS FROM FIREBASE
+---------------------------------- */
+
+function loadStudents() {
+
+  database
+  .ref("checkins")
+  .on("value", snapshot => {
+
+    const table =
+      document.getElementById("studentTable");
+
+
+    table.innerHTML = "";
+
+
+    let onsite = 0;
+
+    let completed = 0;
+
+    let checkedOut = 0;
+
+
+    const records = [];
+
+
+    snapshot.forEach(child => {
+
+      const student =
+        child.val();
+
+
+      student.id =
+        child.key;
+
+
+      if (
+        student.arrivalTime &&
+        isToday(student.arrivalTime)
+      ) {
+
+        records.push(student);
+
+      }
+
+    });
+
+
+
+    /* Put earliest arrivals first */
+
+    records.sort(
+      (a, b) =>
+      a.arrivalTime - b.arrivalTime
+    );
+
+
+
+    records.forEach(student => {
+
+
+      if (
+        student.status === "On Site"
+      ) {
+
+        onsite++;
+
+      }
+
+
+      if (
+        student.complete === true
+      ) {
+
+        completed++;
+
+      }
+
+
+      if (
+        student.status === "Checked Out"
+      ) {
+
+        checkedOut++;
+
+      }
+
+
+
+      const row =
+        document.createElement("tr");
+
+
+      row.innerHTML = `
+
+        <td>
+
+          <strong>
+            ${escapeHTML(student.studentName)}
+          </strong>
+
+        </td>
+
+
+        <td>
+
+          ${formatTime(student.arrivalTime)}
+
+        </td>
+
+
+        <td>
+
+          ${escapeHTML(student.workType || "")}
+
+        </td>
+
+
+        <td>
+
+          ${escapeHTML(student.goal || "")}
+
+        </td>
+
+
+        <td>
+
+          <button
+            class="completeButton"
+            onclick="toggleComplete(
+              '${student.id}',
+              ${student.complete === true}
+            )">
+
+            ${
+              student.complete
+              ? "✅ Complete"
+              : "Mark Complete"
+            }
+
+          </button>
+
+        </td>
+
+
+        <td>
+
+          ${
+            student.status === "Checked Out"
+
+            ?
+
+            "Left " +
+            formatTime(student.checkoutTime)
+
+            :
+
+            `<button
+              class="checkoutButton"
+              onclick="checkOut('${student.id}')">
+
+              Check Out
+
+            </button>`
+          }
+
+        </td>
+
+      `;
+
+
+      table.appendChild(row);
+
+    });
+
+
+
+    document.getElementById("onsiteCount")
+      .innerText = onsite;
+
+
+    document.getElementById("completeCount")
+      .innerText = completed;
+
+
+    document.getElementById("checkoutCount")
+      .innerText = checkedOut;
+
+  });
+
+}
+
+
+
+/* ----------------------------------
+   MARK STUDENT'S GOAL COMPLETE
+---------------------------------- */
+
+function toggleComplete(id, currentlyComplete) {
+
+  database
+  .ref("checkins/" + id)
+  .update({
+
+    complete: !currentlyComplete
+
+  });
+
+}
+
+
+
+/* ----------------------------------
+   CHECK STUDENT OUT
+---------------------------------- */
+
+function checkOut(id) {
+
+  database
+  .ref("checkins/" + id)
+  .update({
+
+    status: "Checked Out",
+
+    checkoutTime:
+      firebase.database.ServerValue.TIMESTAMP
+
+  });
+
+}
+
+
+
+/* ----------------------------------
+   PROTECT TABLE FROM ENTERED HTML
+---------------------------------- */
+
+function escapeHTML(text) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    text || "";
+
+  return div.innerHTML;
+
+}
+
+
+</script>
+
+</body>
+
+</html>
