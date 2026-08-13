@@ -332,13 +332,12 @@ function login() {
 
   .catch(error => {
 
-    document.getElementById("loginError").innerText =
-      "Unable to sign in. Please check your email and password.";
+  document.getElementById("loginError").innerText =
+    "Firebase error: " + error.code + " - " + error.message;
 
-    console.error(error);
+  console.error(error);
 
-  });
-
+});
 }
 
 
