@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>East Campus Check-In</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+      margin-bottom: 7px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    textarea {
+      min-height: 80px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      margin-top: 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #222;
+      color: white;
+    }
+
+    #success {
+      display: none;
+      text-align: center;
+    }
+
+    #success h2 {
+      font-size: 28px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div id="checkinForm">
+
+    <h1>Welcome to East Campus 👋</h1>
+
+    <p class="subtitle">
+      Let us know what you're working on today.
+    </p>
+
+    <label>First and Last Name</label>
+
+    <input
+      type="text"
+      id="studentName"
+      placeholder="Enter your name"
+      required
+    >
+
+    <label>What are you working on today?</label>
+
+    <select id="workType">
+      <option value="">Choose one...</option>
+      <option>Course Work</option>
+      <option>Testing</option>
+      <option>Meeting With Staff</option>
+      <option>Orientation</option>
+      <option>Graduation Requirement</option>
+      <option>Other</option>
+    </select>
+
+    <label>What's your goal while you're here?</label>
+
+    <textarea
+      id="goal"
+      placeholder="Example: Finish English Unit 3 and take the test"
+    ></textarea>
+
+    <button onclick="checkIn()">
+      CHECK IN
+    </button>
+
+  </div>
+
+
+  <div id="success">
+
+    <h2>You're checked in! ✅</h2>
+
+    <p>
+      Have a productive day!
+    </p>
+
+    <button onclick="location.reload()">
+      CHECK IN ANOTHER STUDENT
+    </button>
+
+  </div>
+
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js"></script>
+
+
+<script>
+
+const firebaseConfig = {
+
+  apiKey: "PASTE YOURS HERE",
+
+  authDomain: "PASTE YOURS HERE",
+
+  databaseURL: "PASTE YOUR DATABASE URL HERE",
+
+  projectId: "PASTE YOURS HERE",
+
+  storageBucket: "PASTE YOURS HERE",
+
+  messagingSenderId: "PASTE YOURS HERE",
+
+  appId: "PASTE YOURS HERE"
+
+};
+
+
+firebase.initializeApp(firebaseConfig);
+
+const database = firebase.database();
+
+
+function checkIn() {
+
+  const studentName =
+    document.getElementById("studentName").value.trim();
+
+  const workType =
+    document.getElementById("workType").value;
+
+  const goal =
+    document.getElementById("goal").value.trim();
+
+
+  if (!studentName) {
+
+    alert("Please enter your name.");
+
+    return;
+  }
+
+
+  if (!workType) {
+
+    alert("Please choose what you're working on.");
+
+    return;
+  }
+
+
+  const newCheckin =
+    database.ref("checkins").push();
+
+
+  newCheckin.set({
+
+    studentName: studentName,
+
+    workType: workType,
+
+    goal: goal,
+
+    arrivalTime:
+      firebase.database.ServerValue.TIMESTAMP,
+
+    status: "On Site",
+
+    complete: false
+
+  })
+
+  .then(() => {
+
+    document.getElementById("checkinForm").style.display =
+      "none";
+
+    document.getElementById("success").style.display =
+      "block";
+
+  })
+
+  .catch((error) => {
+
+    alert(
+      "There was a problem checking in. Please ask a staff member for help."
+    );
+
+    console.error(error);
+
+  });
+
+}
+
+</script>
+
+</body>
+</html>
